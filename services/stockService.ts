@@ -1,85 +1,78 @@
-
-import { StockData } from '../types';
+// 1. 从环境变量读取 DeepSeek 能量模块
+const API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY; 
+const BASE_URL = "https://api.deepseek.com/v1/chat/completions";
 
 /**
- * 获取 A 股实时行情与历史数据 (接入东方财富公开接口)
+ * 【个股深度分析】
+ * 逻辑：将 stockService 抓取到的数据发送给 DeepSeek，由它生成多啦A梦风格的报告
  */
-export const fetchStockData = async (symbol: string): Promise<StockData> => {
-  // 1. 自动识别市场前缀 (0/3/12/15/18 是深市/创业板等, 6/68/11/5 是沪市)
-  let secid = '';
-  const firstChar = symbol[0];
-  if (['6', '5', '9'].includes(firstChar)) {
-    secid = `1.${symbol}`; // 沪市
-  } else {
-    secid = `0.${symbol}`; // 深市
-  }
-
-  // 2. 获取 K 线数据 (用于计算 MA)
-  // f51:日期, f53:收盘价
-  const klineUrl = `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${secid}&ut=fa5fd1943c40a8d55d2153df71d83707&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=40`;
-  
-  // 3. 获取实时盘口数据
-  const spotUrl = `https://push2.eastmoney.com/api/qt/stock/get?secid=${secid}&ut=fa5fd1943c40a8d55d2153df71d83707&fields=f57,f58,f43,f170,f46,f44,f45,f47,f48,f60,f19,f20,f39,f161`;
+export const analyzeStock = async (data: any) => {
+  if (!API_KEY) return "未检测到 DeepSeek 能量模块，请在 Netlify 中配置 VITE_DEEPSEEK_API_KEY。";
 
   try {
-    const [klineRes, spotRes] = await Promise.all([
-      fetch(klineUrl).then(res => res.json()),
-      fetch(spotUrl).then(res => res.json())
-    ]);
-
-    if (!klineRes.data || !spotRes.data) {
-      throw new Error('未能识别该股票代码或接口繁忙');
-    }
-
-    const name = spotRes.data.f58;
-    const currentPrice = spotRes.data.f43 / 100;
-    const changePercent = spotRes.data.f170 / 100;
-    const rawKlines = klineRes.data.klines;
-
-    // 解析历史数据计算 MA
-    const history = rawKlines.map((line: string) => {
-      const parts = line.split(',');
-      return {
-        date: parts[0],
-        price: parseFloat(parts[2])
-      };
+    const response = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat", 
+        messages: [
+          { 
+            role: "system", 
+            content: "你是一个来自22世纪的资深股票分析助手，请用多啦A梦的语气，结合 K 线、均线等数据，为用户提供犀利的作战报告。报告中多使用‘任意门’、‘竹蜻蜓’等词汇。注意保持辛金的精准特质。" 
+          },
+          { 
+            role: "user", 
+            content: `分析以下个股数据并生成报告：${JSON.stringify(data)}` 
+          }
+        ],
+        temperature: 0.7
+      })
     });
 
-    // 计算均线逻辑
-    const calculateMA = (data: any[], period: number) => {
-      return data.map((item, index) => {
-        if (index < period - 1) return null;
-        const slice = data.slice(index - period + 1, index + 1);
-        const sum = slice.reduce((acc, curr) => acc + curr.price, 0);
-        return parseFloat((sum / period).toFixed(2));
-      });
-    };
+    const result = await response.json();
+    if (result.error) throw new Error(result.error.message);
+    return result.choices[0].message.content;
+  } catch (error: any) {
+    console.error("DeepSeek 传输故障:", error);
+    return `时空乱流影响，DeepSeek 连接失败: ${error.message}`;
+  }
+};
 
-    const ma5List = calculateMA(history, 5);
-    const ma10List = calculateMA(history, 10);
-    const ma20List = calculateMA(history, 20);
+/**
+ * 【大盘宏观分析】
+ * 逻辑：分析上证指数等宏观数据
+ */
+export const analyzeMarket = async (marketData: any) => {
+  if (!API_KEY) return "大盘分析模块缺少 DeepSeek 能量。";
 
-    const finalHistory = history.map((h: any, i: number) => ({
-      ...h,
-      ma5: ma5List[i],
-      ma10: ma10List[i],
-      ma20: ma20List[i],
-    }));
+  try {
+    const response = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { 
+            role: "system", 
+            content: "你是一个宏观经济专家，请简要分析当前大盘走势。用多啦A梦的口吻。建议简短有力。" 
+          },
+          { 
+            role: "user", 
+            content: `基于以下市场数据给出简短总结：${JSON.stringify(marketData)}` 
+          }
+        ]
+      })
+    });
 
-    const lastMA = finalHistory[finalHistory.length - 1];
-
-    return {
-      symbol,
-      name,
-      currentPrice,
-      changePercent,
-      ma5: lastMA.ma5 || currentPrice,
-      ma10: lastMA.ma10 || currentPrice,
-      ma20: lastMA.ma20 || currentPrice,
-      history: finalHistory.slice(-25)
-    };
+    const result = await response.json();
+    return result.choices[0].message.content;
   } catch (error) {
-    console.error('Fetch Error:', error);
-    throw error;
+    return "宏观雷达探测失败。";
   }
 };
