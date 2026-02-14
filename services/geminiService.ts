@@ -52,7 +52,7 @@ const MARKET_SYSTEM_PROMPT = `
 * **作战方针：** (给全场投资者的建议，如“轻仓侦查”或“全线出击”)
 `;
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
 
 export const analyzeStock = async (stock: StockData): Promise<string> => {
   const prompt = `
