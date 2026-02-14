@@ -17,12 +17,15 @@ const App: React.FC = () => {
   const [marketAnalysis, setMarketAnalysis] = useState<string | null>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+   if (loading) return; 
+
     const cleanSymbol = symbol.trim();
     if (!cleanSymbol || cleanSymbol.length < 6) {
       setError('请输入有效的 6 位股票代码');
       return;
     }
+
+    setLoading(true);
 
     setLoading(true);
     setError(null);
