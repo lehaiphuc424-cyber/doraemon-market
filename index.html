@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多啦A梦·未来炒股作战室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', 'ZCOOL KuaiLe', sans-serif;
+            background-color: #f0f9ff;
+            background-image: 
+                radial-gradient(#bae6fd 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow-x: hidden;
+        }
+        .dora-blue { background-color: #00A0E9; }
+        .dora-red { background-color: #ED1C24; }
+        .dora-yellow { background-color: #FFD200; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 4px solid #00A0E9;
+            border-radius: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 160, 233, 0.1);
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .gadget-fall {
+            position: fixed;
+            z-index: 50;
+            animation: fall linear forwards;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .gadget-fall:hover {
+            transform: scale(1.2);
+        }
+
+        .transform-to-head {
+            animation: transformPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes transformPop {
+            0% { transform: scale(1) rotate(0); }
+            50% { transform: scale(1.5) rotate(15deg); }
+            100% { transform: scale(0) rotate(-15deg); opacity: 0; }
+        }
+
+        .mini-dora-head {
+            width: 50px;
+            height: 50px;
+            background: #00A0E9;
+            border-radius: 50%;
+            border: 2px solid black;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .mini-dora-head::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            width: 44px;
+            height: 38px;
+            background: white;
+            border-radius: 50% 50% 30% 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1px solid black;
+        }
+        .mini-eye {
+            position: absolute;
+            width: 8px;
+            height: 10px;
+            background: white;
+            border: 1px solid black;
+            border-radius: 50%;
+            top: 6px;
+            z-index: 10;
+        }
+        .mini-eye.left { left: 14px; }
+        .mini-eye.right { right: 14px; }
+        .mini-eye::after {
+            content: "";
+            position: absolute;
+            width: 2px;
+            height: 4px;
+            background: black;
+            border-radius: 50%;
+            top: 2px;
+            left: 3px;
+        }
+        .mini-nose {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ED1C24;
+            border: 1px solid black;
+            border-radius: 50%;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "recharts": "https://esm.sh/recharts@^3.7.0"
+  }
+}
+</script>
+</head>
+<body class="min-h-screen">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
