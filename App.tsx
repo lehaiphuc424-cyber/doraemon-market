@@ -3,6 +3,7 @@ import DoraHeader from './components/DoraHeader';
 import StockChart from './components/StockChart';
 import FallingGadgets from './components/FallingGadgets';
 import MarketOverview from './components/MarketOverview';
+// 下面这两行是关键，确保路径与你的文件夹结构（图 3c96e3）完全匹配
 import { fetchStockData } from './services/stockService';
 import { analyzeStock, analyzeMarket } from './services/geminiService';
 import { StockData } from './types';
